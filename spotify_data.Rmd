@@ -1,0 +1,51 @@
+---
+title: "Spotify Tidy Tuesday"
+author: "Ted Laderas"
+date: "1/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidytuesdayR)
+library(ggplot2)
+library(forcats)
+
+spotify_data <- tidytuesdayR::tt_load(2020, 4)
+spotify_songs <- spotify_data$spotify_songs
+
+ggplot(spotify_songs, aes(y=track_popularity, x= duration_ms)) + 
+  geom_hex() + facet_wrap(~playlist_genre)
+```
+
+```{r}
+ggplot(spotify_songs, aes(x=track_popularity, 
+                          color = playlist_genre)) + 
+  geom_density() + facet_wrap(~playlist_genre)
+```
+
+```{r}
+ggplot(spotify_songs, aes(x=instrumentalness, 
+                          color = playlist_genre)) + 
+  geom_density() + facet_wrap(~playlist_genre)
+
+```
+
+
+
+```{r}
+library(dplyr)
+spotify_songs2 <- spotify_songs %>% mutate(playlist_subgenre = fct_reorder(playlist_subgenre, track_popularity))
+
+levels(spotify_songs2$playlist_subgenre) <- gsub(" ", "\n", levels(spotify_songs2$playlist_subgenre))
+
+pl <- ggplot(spotify_songs2, aes(y=track_popularity, x=playlist_subgenre, 
+                          fill = playlist_genre)) + geom_boxplot() +
+  #theme(axis.text=element_text(margin = margin(0,1,1,0), angle = 90, hjust = 1)) + 
+  facet_wrap(~playlist_genre, scales = "free_y") + ggtitle("Subgenres are not equally popular in a genre") + coord_flip()
+
+pl
+
+ggsave("subgenre.png", height = 6, width = 9)
+
+```
